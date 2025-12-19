@@ -10,7 +10,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from datetime import datetime
 import enum
 
 from .database import Base
@@ -108,7 +107,9 @@ class Amendment(Base):
     created_by = Column(String(100), nullable=True)
     created_on = Column(DateTime, default=func.now(), nullable=False)
     modified_by = Column(String(100), nullable=True)
-    modified_on = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    modified_on = Column(
+        DateTime, default=func.now(), onupdate=func.now(), nullable=False
+    )
 
     # Relationships
     progress_entries = relationship(
@@ -128,8 +129,12 @@ class Amendment(Base):
 class AmendmentProgress(Base):
     __tablename__ = "amendment_progress"
 
-    amendment_progress_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    amendment_id = Column(Integer, ForeignKey("amendments.amendment_id"), nullable=False)
+    amendment_progress_id = Column(
+        Integer, primary_key=True, index=True, autoincrement=True
+    )
+    amendment_id = Column(
+        Integer, ForeignKey("amendments.amendment_id"), nullable=False
+    )
 
     start_date = Column(DateTime, nullable=True)
     description = Column(Text, nullable=False)
@@ -139,7 +144,9 @@ class AmendmentProgress(Base):
     created_by = Column(String(100), nullable=True)
     created_on = Column(DateTime, default=func.now(), nullable=False)
     modified_by = Column(String(100), nullable=True)
-    modified_on = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    modified_on = Column(
+        DateTime, default=func.now(), onupdate=func.now(), nullable=False
+    )
 
     # Relationship
     amendment = relationship("Amendment", back_populates="progress_entries")
@@ -149,7 +156,9 @@ class AmendmentApplication(Base):
     __tablename__ = "amendment_applications"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    amendment_id = Column(Integer, ForeignKey("amendments.amendment_id"), nullable=False)
+    amendment_id = Column(
+        Integer, ForeignKey("amendments.amendment_id"), nullable=False
+    )
     application_name = Column(String(100), nullable=False)
     version = Column(String(50), nullable=True)
 
@@ -160,8 +169,12 @@ class AmendmentApplication(Base):
 class AmendmentLink(Base):
     __tablename__ = "amendment_links"
 
-    amendment_link_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    amendment_id = Column(Integer, ForeignKey("amendments.amendment_id"), nullable=False)
+    amendment_link_id = Column(
+        Integer, primary_key=True, index=True, autoincrement=True
+    )
+    amendment_id = Column(
+        Integer, ForeignKey("amendments.amendment_id"), nullable=False
+    )
     linked_amendment_id = Column(Integer, nullable=False)
     link_type = Column(SQLEnum(LinkType), nullable=False, default=LinkType.RELATED)
 

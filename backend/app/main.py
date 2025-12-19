@@ -2,14 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import engine, Base
-from . import models
+from . import models  # noqa: F401 - imported for SQLAlchemy model registration
 
 # Create all database tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Amendment Tracking System",
-    description="Internal amendment tracking system for managing application updates",
+    description=(
+        "Internal amendment tracking system for managing application updates"
+    ),
     version="1.0.0",
 )
 
