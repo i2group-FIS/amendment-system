@@ -268,11 +268,36 @@ class TestDatabaseModels:
         """Test that foreign key constraint exists on AmendmentLink.linked_amendment_id."""
         from sqlalchemy.exc import IntegrityError
 
-        # Use a separate context to avoid session rollback issues
+        # First, verify that linking to an existing amendment works
+        with get_db_context() as db:
+            amendment1 = Amendment(
+                amendment_reference="TEST-007A",
+                amendment_type=AmendmentType.BUG,
+                description="First amendment",
+            )
+            amendment2 = Amendment(
+                amendment_reference="TEST-007B",
+                amendment_type=AmendmentType.BUG,
+                description="Second amendment",
+            )
+            db.add_all([amendment1, amendment2])
+            db.flush()
+
+            # This should work - both amendments exist
+            link = AmendmentLink(
+                amendment_id=amendment1.amendment_id,
+                linked_amendment_id=amendment2.amendment_id,
+            )
+            db.add(link)
+            db.flush()
+            assert True, "Linking to existing amendment should work"
+
+        # Now test that linking to non-existent amendment fails
+        error_raised = False
         try:
             with get_db_context() as db:
                 amendment = Amendment(
-                    amendment_reference="TEST-007",
+                    amendment_reference="TEST-007C",
                     amendment_type=AmendmentType.BUG,
                     description="Test FK constraint",
                 )
@@ -287,12 +312,11 @@ class TestDatabaseModels:
                 )
                 db.add(link)
                 db.flush()  # This should raise IntegrityError
-
-                # If we get here, the test should fail
-                assert False, "Expected IntegrityError was not raised"
         except IntegrityError:
             # This is expected - foreign key constraint is working
-            pass
+            error_raised = True
+
+        assert error_raised, "Expected IntegrityError for invalid FK was not raised"
 
 
 class TestDatabaseUtilities:
