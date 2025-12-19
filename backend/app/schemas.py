@@ -14,7 +14,6 @@ from .models import (
     AmendmentStatus,
     DevelopmentStatus,
     Priority,
-    Force,
     LinkType,
 )
 
@@ -304,7 +303,7 @@ class AmendmentFilter(BaseModel):
     # Sorting
     sort_by: Optional[str] = Field(
         "amendment_id",
-        description="Field to sort by (amendment_id, created_on, modified_on, priority, etc.)",
+        description="Field to sort by (amendment_id, created_on, etc.)",
     )
     sort_order: Optional[str] = Field(
         "desc", pattern="^(asc|desc)$", description="Sort order: asc or desc"

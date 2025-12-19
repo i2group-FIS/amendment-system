@@ -72,9 +72,7 @@ try:
             max_overflow=10,
             echo=os.getenv("SQL_ECHO", "False").lower() == "true",
         )
-        db_name = (
-            DATABASE_URL.split("@")[-1] if "@" in DATABASE_URL else "database"
-        )
+        db_name = DATABASE_URL.split("@")[-1] if "@" in DATABASE_URL else "database"
         logger.info(f"Database engine created for: {db_name}")
 
 except Exception as e:

@@ -51,7 +51,10 @@ def test_amendment_create():
         description="Minimal amendment",
     )
 
-    print(f"  ✓ Minimal amendment with defaults: status={amendment_minimal.amendment_status}")
+    print(
+        f"  ✓ Minimal amendment with defaults: "
+        f"status={amendment_minimal.amendment_status}"
+    )
     assert amendment_minimal.amendment_status == AmendmentStatus.OPEN
     assert amendment_minimal.development_status == DevelopmentStatus.NOT_STARTED
     assert amendment_minimal.priority == Priority.MEDIUM
@@ -97,7 +100,10 @@ def test_amendment_filter():
 
     # Minimal filter with defaults
     minimal_filter = AmendmentFilter()
-    print(f"  ✓ Minimal filter with defaults: skip={minimal_filter.skip}, limit={minimal_filter.limit}")
+    print(
+        f"  ✓ Minimal filter with defaults: "
+        f"skip={minimal_filter.skip}, limit={minimal_filter.limit}"
+    )
     assert minimal_filter.skip == 0
     assert minimal_filter.limit == 100
 
