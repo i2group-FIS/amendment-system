@@ -125,6 +125,14 @@ class Amendment(Base):
         cascade="all, delete-orphan",
     )
 
+    def __repr__(self) -> str:
+        return (
+            f"<Amendment(id={self.amendment_id}, "
+            f"ref='{self.amendment_reference}', "
+            f"type={self.amendment_type}, "
+            f"status={self.amendment_status})>"
+        )
+
 
 class AmendmentProgress(Base):
     __tablename__ = "amendment_progress"
@@ -151,6 +159,13 @@ class AmendmentProgress(Base):
     # Relationship
     amendment = relationship("Amendment", back_populates="progress_entries")
 
+    def __repr__(self) -> str:
+        return (
+            f"<AmendmentProgress(id={self.amendment_progress_id}, "
+            f"amendment_id={self.amendment_id}, "
+            f"date={self.start_date})>"
+        )
+
 
 class AmendmentApplication(Base):
     __tablename__ = "amendment_applications"
@@ -165,6 +180,13 @@ class AmendmentApplication(Base):
     # Relationship
     amendment = relationship("Amendment", back_populates="applications")
 
+    def __repr__(self) -> str:
+        return (
+            f"<AmendmentApplication(id={self.id}, "
+            f"amendment_id={self.amendment_id}, "
+            f"app='{self.application_name}')>"
+        )
+
 
 class AmendmentLink(Base):
     __tablename__ = "amendment_links"
@@ -175,10 +197,22 @@ class AmendmentLink(Base):
     amendment_id = Column(
         Integer, ForeignKey("amendments.amendment_id"), nullable=False
     )
-    linked_amendment_id = Column(Integer, nullable=False)
+    linked_amendment_id = Column(
+        Integer,
+        ForeignKey("amendments.amendment_id", ondelete="CASCADE"),
+        nullable=False,
+    )
     link_type = Column(SQLEnum(LinkType), nullable=False, default=LinkType.RELATED)
 
     # Relationship
     amendment = relationship(
         "Amendment", foreign_keys=[amendment_id], back_populates="links"
     )
+
+    def __repr__(self) -> str:
+        return (
+            f"<AmendmentLink(id={self.amendment_link_id}, "
+            f"from={self.amendment_id}, "
+            f"to={self.linked_amendment_id}, "
+            f"type={self.link_type})>"
+        )
