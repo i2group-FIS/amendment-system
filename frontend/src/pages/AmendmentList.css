@@ -1,0 +1,256 @@
+.amendment-list {
+  max-width: 100%;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.filters-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filters-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.filter-input,
+.filter-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.search-input {
+  min-width: 250px;
+}
+
+.btn-clear {
+  padding: 0.5rem 1rem;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-clear:hover {
+  background-color: #c0392b;
+}
+
+.results-info {
+  margin-bottom: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.amendments-table-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.amendments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.amendments-table thead {
+  background-color: #f8f9fa;
+}
+
+.amendments-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #555;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.amendments-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.9rem;
+}
+
+.amendments-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.amendment-reference {
+  color: #3498db;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.amendment-reference:hover {
+  text-decoration: underline;
+}
+
+.description-cell {
+  max-width: 300px;
+  color: #555;
+}
+
+.type-badge,
+.status-badge,
+.priority-badge,
+.qa-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.type-badge {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.status-badge {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.status-badge.status-open {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge.status-in-progress {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.status-badge.status-testing {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.status-badge.status-completed {
+  background-color: #e8f5e9;
+  color: #388e3c;
+}
+
+.status-badge.status-deployed {
+  background-color: #e0f2f1;
+  color: #00796b;
+}
+
+.priority-badge.priority-critical {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.priority-badge.priority-high {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.priority-badge.priority-medium {
+  background-color: #fff9c4;
+  color: #f57f17;
+}
+
+.priority-badge.priority-low {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.qa-cell {
+  text-align: center;
+}
+
+.qa-badge.qa-completed {
+  background-color: #e8f5e9;
+  color: #388e3c;
+}
+
+.qa-badge.qa-assigned {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.qa-badge.qa-none {
+  background-color: #f5f5f5;
+  color: #999;
+}
+
+.btn-view {
+  padding: 0.4rem 0.8rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-view:hover {
+  background-color: #2980b9;
+}
+
+.no-results {
+  text-align: center;
+  padding: 3rem !important;
+  color: #999;
+  font-style: italic;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.btn-pagination {
+  padding: 0.5rem 1.5rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-pagination:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.btn-pagination:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  color: #666;
+  font-size: 0.9rem;
+}

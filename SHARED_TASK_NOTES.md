@@ -4,13 +4,20 @@
 
 **Backend API: ✅ COMPLETE**
 - All CRUD operations implemented and tested (148 tests passing)
-- All API endpoints implemented and working:
-  - Amendment CRUD: create, read, update, delete
-  - Progress tracking: add/get progress updates
-  - Amendment linking: link/unlink related amendments
-  - Statistics: dashboard stats endpoint
-  - Reference data: statuses, priorities, types, forces, etc.
+- All API endpoints implemented and working
 - Server running successfully on port 8000
+
+**Frontend: ✅ BASIC IMPLEMENTATION COMPLETE**
+- React app structure initialized with routing
+- Dashboard page with statistics display (✅ working)
+- Amendment List page with filtering/pagination (✅ working)
+- API service layer connecting to backend (✅ working)
+- Frontend running on port 3000, proxying to backend
+
+**Database: ✅ SEEDED**
+- Seeding script creates 50 sample amendments with realistic data
+- Includes progress updates, application mappings, and links
+- Run: `python scripts/seed_db.py`
 
 ## What's Working
 
@@ -45,55 +52,46 @@
 
 ## Next Steps (Priority Order)
 
-### 1. Frontend Implementation (CRITICAL - NOTHING EXISTS)
-**Status**: The `frontend/` directory exists but is completely empty (only .gitkeep files)
+### 1. Complete Frontend Pages (HIGH PRIORITY)
+Still needed for full functionality:
+- **Amendment Detail page**: View/edit single amendment, show progress history, linked amendments
+- **Amendment Create form**: Full form to create new amendments
+- **Progress modal**: Component to add progress updates to amendments
+- **Edit functionality**: Allow updating amendment fields inline
 
-This is the **LARGEST REMAINING WORK ITEM** for a working system:
-- Initialize React app (if needed) or use existing structure
-- Install dependencies: axios, react-router-dom, UI library (Material-UI/Tailwind)
-- Create directory structure: components/, pages/, services/, utils/, hooks/
-- Build API service layer (src/services/api.js) to call backend
-- Create Amendment List/Enquiry page with filtering
-- Create Amendment Detail/Update page
-- Create Amendment Create form
-- Add progress update modal
-- Implement routing
-
-**Estimated effort**: 20-30 hours
-
-### 2. API Integration Tests
-Create `tests/test_api.py` to test all endpoints end-to-end:
-- Test full CRUD workflows via HTTP
-- Test filtering, pagination, sorting
-- Test error responses (404, 400, 422)
-- Test progress and linking workflows
-
-**Estimated effort**: 4-5 hours
-
-### 3. Database Seeding Script (RECOMMENDED NEXT)
-Create `scripts/seed_db.py` to populate test data:
-- Generate 20-50 sample amendments
-- Various statuses, priorities, types
-- Sample progress updates and links
-- Makes frontend development much easier
-
-**Estimated effort**: 2-3 hours
-
-### 4. Authentication (SECURITY GAP)
+### 2. Authentication (SECURITY GAP)
 Currently no auth - API is completely open:
 - Implement JWT authentication
 - User model with roles
 - Protected endpoints
 - Login/logout
 
-**Estimated effort**: 8-10 hours
+### 3. API Integration Tests
+Create `tests/test_api.py` to test all endpoints end-to-end:
+- Test full CRUD workflows via HTTP
+- Test filtering, pagination, sorting
+- Test error responses (404, 400, 422)
+- Test progress and linking workflows
+
+### 4. Production Readiness
+- Set up environment variables for configuration
+- Add proper error handling and logging
+- Set up database migrations (Alembic)
+- Add rate limiting and security headers
+- Deploy to production environment
 
 ## Technical Notes
 
-- **Server**: Run with `cd backend && source venv/bin/activate && uvicorn app.main:app --reload`
-- **Tests**: Run with `source backend/venv/bin/activate && pytest`
-- **Database**: SQLite file at `amendment_system.db` (auto-created)
-- **Route Order**: Stats endpoint MUST be before `{amendment_id}` to avoid collision
+**Running the System:**
+- Backend: `cd backend && source venv/bin/activate && uvicorn app.main:app --reload` (port 8000)
+- Frontend: `cd frontend && npm start` (port 3000)
+- Tests: `source backend/venv/bin/activate && pytest` (148 tests)
+- Seed DB: `python scripts/seed_db.py` (creates 50 sample amendments)
+
+**Important:**
+- Database location: `backend/amendment_system.db` (backend creates it in backend/)
+- Frontend proxies `/api` requests to `http://localhost:8000`
+- Route Order: Stats endpoint MUST be before `{amendment_id}` to avoid collision
 
 ## Known Issues / Technical Debt
 
@@ -108,4 +106,4 @@ From TODO.md:
 
 Get this system working so it can replace fis-amendments, then migrate data over.
 
-**NEXT DEVELOPER**: Start with the database seeding script (makes testing easier), then tackle the frontend implementation. The backend is solid and ready to use.
+**NEXT DEVELOPER**: The backend is solid, frontend basics are working (Dashboard + List page). Focus on completing the Amendment Detail and Create pages to enable full CRUD operations through the UI. The seeding script provides good test data.
