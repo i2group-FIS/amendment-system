@@ -20,11 +20,28 @@
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   text-align: center;
+  transition: all 0.3s ease;
 }
 
 .stat-card.total {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+}
+
+.stat-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  cursor: pointer;
+}
+
+.stat-card-link:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.stat-card-link.total:hover {
+  box-shadow: 0 6px 12px rgba(102,126,234,0.4);
 }
 
 .stat-label {
@@ -85,6 +102,17 @@
 
 .stat-item:hover {
   background-color: #f8f9fa;
+}
+
+.stat-item-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.stat-item-link:hover {
+  background-color: #e9ecef;
+  transform: translateX(3px);
 }
 
 .stat-item-label {

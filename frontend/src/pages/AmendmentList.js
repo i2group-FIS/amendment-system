@@ -1,9 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { amendmentAPI, referenceAPI } from '../services/api';
 import './AmendmentList.css';
 
 function AmendmentList() {
+  const location = useLocation();
+
+  // Parse URL query parameters on mount
+  const getInitialFilters = () => {
+    const searchParams = new URLSearchParams(location.search);
+
+    // Helper to parse boolean params
+    const parseBoolParam = (value) => {
+      if (value === 'true') return true;
+      if (value === 'false') return false;
+      return '';
+    };
+
+    return {
+      search_text: searchParams.get('search_text') || '',
+      amendment_status: searchParams.get('amendment_status') || '',
+      priority: searchParams.get('priority') || '',
+      amendment_type: searchParams.get('amendment_type') || '',
+      force: searchParams.get('force') || '',
+      development_status: searchParams.get('development_status') || '',
+      assigned_to: searchParams.get('assigned_to') || '',
+      reported_by: searchParams.get('reported_by') || '',
+      qa_completed: parseBoolParam(searchParams.get('qa_completed')),
+      database_changes: parseBoolParam(searchParams.get('database_changes')),
+      db_upgrade_changes: parseBoolParam(searchParams.get('db_upgrade_changes')),
+    };
+  };
+
   const [amendments, setAmendments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,55 +39,33 @@ function AmendmentList() {
   const [statuses, setStatuses] = useState([]);
   const [priorities, setPriorities] = useState([]);
   const [types, setTypes] = useState([]);
-  const [forces, setForces] = useState([]);
   const [developmentStatuses, setDevelopmentStatuses] = useState([]);
 
-  const [filters, setFilters] = useState({
-    search_text: '',
-    amendment_status: '',
-    priority: '',
-    amendment_type: '',
-    force: '',
-    development_status: '',
-    assigned_to: '',
-    reported_by: '',
-    qa_completed: '',
-    database_changes: '',
-  });
+  const [filters, setFilters] = useState(getInitialFilters());
 
   const [pagination, setPagination] = useState({
     skip: 0,
     limit: 25,
   });
 
-  useEffect(() => {
-    loadReferenceData();
-  }, []);
-
-  useEffect(() => {
-    loadAmendments();
-  }, [filters, pagination]);
-
-  const loadReferenceData = async () => {
+  const loadReferenceData = useCallback(async () => {
     try {
-      const [statusRes, priorityRes, typeRes, forceRes, devStatusRes] = await Promise.all([
+      const [statusRes, priorityRes, typeRes, devStatusRes] = await Promise.all([
         referenceAPI.getStatuses(),
         referenceAPI.getPriorities(),
         referenceAPI.getTypes(),
-        referenceAPI.getForces(),
         referenceAPI.getDevelopmentStatuses(),
       ]);
       setStatuses(statusRes.data);
       setPriorities(priorityRes.data);
       setTypes(typeRes.data);
-      setForces(forceRes.data);
       setDevelopmentStatuses(devStatusRes.data);
     } catch (err) {
       console.error('Failed to load reference data:', err);
     }
-  };
+  }, []);
 
-  const loadAmendments = async () => {
+  const loadAmendments = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -69,14 +75,50 @@ function AmendmentList() {
         ),
       };
       const response = await amendmentAPI.getAll(params);
-      setAmendments(response.data);
+      // Extract items array from response
+      setAmendments(response.data.items || []);
       setError(null);
     } catch (err) {
       setError('Failed to load amendments: ' + (err.response?.data?.detail || err.message));
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination]);
+
+  useEffect(() => {
+    loadReferenceData();
+  }, [loadReferenceData]);
+
+  useEffect(() => {
+    loadAmendments();
+  }, [loadAmendments]);
+
+  // Update filters when URL changes
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+
+    // Helper to parse boolean params
+    const parseBoolParam = (value) => {
+      if (value === 'true') return true;
+      if (value === 'false') return false;
+      return '';
+    };
+
+    setFilters({
+      search_text: searchParams.get('search_text') || '',
+      amendment_status: searchParams.get('amendment_status') || '',
+      priority: searchParams.get('priority') || '',
+      amendment_type: searchParams.get('amendment_type') || '',
+      force: searchParams.get('force') || '',
+      development_status: searchParams.get('development_status') || '',
+      assigned_to: searchParams.get('assigned_to') || '',
+      reported_by: searchParams.get('reported_by') || '',
+      qa_completed: parseBoolParam(searchParams.get('qa_completed')),
+      database_changes: parseBoolParam(searchParams.get('database_changes')),
+      db_upgrade_changes: parseBoolParam(searchParams.get('db_upgrade_changes')),
+    });
+    setPagination({ skip: 0, limit: 25 });
+  }, [location.search]);
 
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({
@@ -98,6 +140,7 @@ function AmendmentList() {
       reported_by: '',
       qa_completed: '',
       database_changes: '',
+      db_upgrade_changes: '',
     });
     setPagination({ skip: 0, limit: 25 });
   };

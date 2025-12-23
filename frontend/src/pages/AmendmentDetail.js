@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { amendmentAPI, referenceAPI } from '../services/api';
 import './AmendmentDetail.css';
@@ -29,12 +29,7 @@ function AmendmentDetail() {
     start_date: new Date().toISOString().slice(0, 16)
   });
 
-  useEffect(() => {
-    loadAmendment();
-    loadReferenceData();
-  }, [id]);
-
-  const loadAmendment = async () => {
+  const loadAmendment = useCallback(async () => {
     try {
       setLoading(true);
       const response = await amendmentAPI.getById(id);
@@ -46,9 +41,9 @@ function AmendmentDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const loadReferenceData = async () => {
+  const loadReferenceData = useCallback(async () => {
     try {
       const [typesRes, statusesRes, devStatusesRes, prioritiesRes, forcesRes] = await Promise.all([
         referenceAPI.getTypes(),
@@ -66,7 +61,12 @@ function AmendmentDetail() {
     } catch (err) {
       console.error('Failed to load reference data:', err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadAmendment();
+    loadReferenceData();
+  }, [loadAmendment, loadReferenceData]);
 
   const handleEdit = () => {
     setEditing(true);

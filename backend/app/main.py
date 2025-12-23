@@ -386,7 +386,7 @@ def get_statuses():
     return [status.value for status in AmendmentStatus]
 
 
-@app.get("/api/reference/dev-statuses", response_model=List[str])
+@app.get("/api/reference/development-statuses", response_model=List[str])
 def get_dev_statuses():
     """Get all available development statuses."""
     from .models import DevelopmentStatus

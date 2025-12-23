@@ -45,25 +45,25 @@ function Dashboard() {
       </div>
 
       <div className="stats-grid">
-        <div className="stat-card total">
+        <Link to="/amendments" className="stat-card total stat-card-link">
           <div className="stat-label">Total Amendments</div>
           <div className="stat-value">{stats.total_amendments}</div>
-        </div>
+        </Link>
 
-        <div className="stat-card">
+        <Link to="/amendments?qa_completed=true" className="stat-card stat-card-link">
           <div className="stat-label">QA Completed</div>
           <div className="stat-value">{stats.qa_completed}</div>
-        </div>
+        </Link>
 
-        <div className="stat-card">
+        <Link to="/amendments?database_changes=true" className="stat-card stat-card-link">
           <div className="stat-label">Database Changes</div>
           <div className="stat-value">{stats.database_changes}</div>
-        </div>
+        </Link>
 
-        <div className="stat-card">
+        <Link to="/amendments?db_upgrade_changes=true" className="stat-card stat-card-link">
           <div className="stat-label">DB Upgrade Changes</div>
           <div className="stat-value">{stats.db_upgrade_changes}</div>
-        </div>
+        </Link>
       </div>
 
       <div className="stats-section">
@@ -71,12 +71,16 @@ function Dashboard() {
           <h2 className="stat-group-title">By Status</h2>
           <div className="stat-list">
             {Object.entries(stats.by_status).map(([status, count]) => (
-              <div key={status} className="stat-item">
+              <Link
+                key={status}
+                to={`/amendments?amendment_status=${encodeURIComponent(status)}`}
+                className="stat-item stat-item-link"
+              >
                 <span className="stat-item-label">{status}</span>
                 <span className={`stat-item-value status-${status.toLowerCase().replace(' ', '-')}`}>
                   {count}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -85,12 +89,16 @@ function Dashboard() {
           <h2 className="stat-group-title">By Priority</h2>
           <div className="stat-list">
             {Object.entries(stats.by_priority).map(([priority, count]) => (
-              <div key={priority} className="stat-item">
+              <Link
+                key={priority}
+                to={`/amendments?priority=${encodeURIComponent(priority)}`}
+                className="stat-item stat-item-link"
+              >
                 <span className="stat-item-label">{priority}</span>
                 <span className={`stat-item-value priority-${priority.toLowerCase()}`}>
                   {count}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -99,10 +107,14 @@ function Dashboard() {
           <h2 className="stat-group-title">By Type</h2>
           <div className="stat-list">
             {Object.entries(stats.by_type).map(([type, count]) => (
-              <div key={type} className="stat-item">
+              <Link
+                key={type}
+                to={`/amendments?amendment_type=${encodeURIComponent(type)}`}
+                className="stat-item stat-item-link"
+              >
                 <span className="stat-item-label">{type}</span>
                 <span className="stat-item-value">{count}</span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -111,10 +123,14 @@ function Dashboard() {
           <h2 className="stat-group-title">By Development Status</h2>
           <div className="stat-list">
             {Object.entries(stats.by_development_status).map(([status, count]) => (
-              <div key={status} className="stat-item">
+              <Link
+                key={status}
+                to={`/amendments?development_status=${encodeURIComponent(status)}`}
+                className="stat-item stat-item-link"
+              >
                 <span className="stat-item-label">{status}</span>
                 <span className="stat-item-value">{count}</span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
