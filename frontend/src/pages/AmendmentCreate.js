@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { amendmentAPI, referenceAPI } from '../services/api';
+import { amendmentAPI, referenceAPI, documentAPI } from '../services/api';
 import './AmendmentCreate.css';
 
 function AmendmentCreate() {
@@ -32,6 +32,9 @@ function AmendmentCreate() {
     db_upgrade_changes: false,
     release_notes: ''
   });
+
+  // Document attachments
+  const [documents, setDocuments] = useState([]);
 
   useEffect(() => {
     loadReferenceData();
@@ -80,6 +83,28 @@ function AmendmentCreate() {
     }));
   };
 
+  const handleFileAdd = (e) => {
+    const files = Array.from(e.target.files);
+    const newDocuments = files.map(file => ({
+      file,
+      document_name: file.name,
+      document_type: 'Other',
+      description: ''
+    }));
+    setDocuments(prev => [...prev, ...newDocuments]);
+    e.target.value = ''; // Reset input to allow adding same file again
+  };
+
+  const handleDocumentChange = (index, field, value) => {
+    setDocuments(prev => prev.map((doc, i) =>
+      i === index ? { ...doc, [field]: value } : doc
+    ));
+  };
+
+  const handleRemoveDocument = (index) => {
+    setDocuments(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -106,9 +131,31 @@ function AmendmentCreate() {
       };
 
       const response = await amendmentAPI.create(submitData);
+      const amendmentId = response.data.amendment_id;
+
+      // Upload any attached documents
+      if (documents.length > 0) {
+        const uploadPromises = documents.map(doc => {
+          const formData = new FormData();
+          formData.append('file', doc.file);
+          formData.append('document_name', doc.document_name);
+          formData.append('document_type', doc.document_type);
+          if (doc.description) {
+            formData.append('description', doc.description);
+          }
+          return documentAPI.upload(amendmentId, formData);
+        });
+
+        try {
+          await Promise.all(uploadPromises);
+        } catch (docErr) {
+          console.error('Failed to upload some documents:', docErr);
+          // Continue to navigate even if document upload fails
+        }
+      }
 
       // Navigate to the newly created amendment
-      navigate(`/amendments/${response.data.amendment_id}`);
+      navigate(`/amendments/${amendmentId}`);
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to create amendment');
       setSaving(false);
@@ -304,6 +351,65 @@ function AmendmentCreate() {
               DB Upgrade Changes Required
             </label>
           </div>
+        </div>
+
+        <div className="form-section">
+          <h2>Attach Documents (Optional)</h2>
+          <p className="section-hint">Add screenshots, specifications, or other supporting documents</p>
+
+          <div className="form-field">
+            <label>Add Files</label>
+            <input
+              type="file"
+              multiple
+              onChange={handleFileAdd}
+              accept="*/*"
+            />
+          </div>
+
+          {documents.length > 0 && (
+            <div className="documents-preview">
+              <h3>Files to Upload ({documents.length})</h3>
+              {documents.map((doc, index) => (
+                <div key={index} className="document-preview-item">
+                  <div className="doc-preview-header">
+                    <strong>{doc.file.name}</strong>
+                    <span className="doc-size">{(doc.file.size / 1024).toFixed(1)} KB</span>
+                    <button
+                      type="button"
+                      className="btn-remove"
+                      onClick={() => handleRemoveDocument(index)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="doc-preview-fields">
+                    <input
+                      type="text"
+                      placeholder="Document name"
+                      value={doc.document_name}
+                      onChange={(e) => handleDocumentChange(index, 'document_name', e.target.value)}
+                    />
+                    <select
+                      value={doc.document_type}
+                      onChange={(e) => handleDocumentChange(index, 'document_type', e.target.value)}
+                    >
+                      <option value="Test Plan">Test Plan</option>
+                      <option value="Screenshot">Screenshot</option>
+                      <option value="Specification">Specification</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Description (optional)"
+                      value={doc.description}
+                      onChange={(e) => handleDocumentChange(index, 'description', e.target.value)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="form-actions">
