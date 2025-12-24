@@ -348,3 +348,23 @@ class ApplicationVersion(Base):
             f"app_id={self.application_id}, "
             f"version='{self.version}')>"
         )
+
+
+class AmendmentReferences(Base):
+    __tablename__ = "amendment_references"
+
+    id = Column(Integer, primary_key=True, index=True)
+    bug_reference = Column(Integer, default=0, nullable=False)
+    fault_reference = Column(Integer, default=0, nullable=False)
+    enhancement_reference = Column(Integer, default=0, nullable=False)
+    feature_reference = Column(Integer, default=0, nullable=False)
+    suggestion_reference = Column(Integer, default=0, nullable=False)
+    maintenance_reference = Column(Integer, default=0, nullable=False)
+    documentation_reference = Column(Integer, default=0, nullable=False)
+
+    def __repr__(self) -> str:
+        return (
+            f"<AmendmentReferences(id={self.id}, "
+            f"bug={self.bug_reference}, fault={self.fault_reference}, "
+            f"enhancement={self.enhancement_reference})>"
+        )

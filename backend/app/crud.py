@@ -16,6 +16,7 @@ from .models import (
     AmendmentLink,
     AmendmentDocument,
     AmendmentApplication,
+    AmendmentReferences,
     AmendmentStatus,
     DevelopmentStatus,
     Priority,
@@ -46,54 +47,130 @@ from .schemas import (
 # Amendment Reference Number Generation
 # ============================================================================
 
+# Type suffix mapping
+TYPE_SUFFIX_MAP = {
+    AmendmentType.BUG: "B",
+    AmendmentType.FAULT: "F",
+    AmendmentType.ENHANCEMENT: "E",
+    AmendmentType.FEATURE: "FT",
+    AmendmentType.SUGGESTION: "S",
+    AmendmentType.MAINTENANCE: "M",
+    AmendmentType.DOCUMENTATION: "D",
+}
 
-def generate_amendment_reference(db: Session) -> str:
+
+def get_or_create_references(db: Session) -> AmendmentReferences:
     """
-    Generate the next available amendment reference number.
-
-    Reference format: AMD-YYYYMMDD-NNN
-    Example: AMD-20231215-001
+    Get the amendment references record or create if it doesn't exist.
 
     Args:
         db: Database session
+
+    Returns:
+        AmendmentReferences: The references tracking object
+    """
+    refs = db.query(AmendmentReferences).first()
+    if not refs:
+        refs = AmendmentReferences(
+            bug_reference=0,
+            fault_reference=0,
+            enhancement_reference=0,
+            feature_reference=0,
+            suggestion_reference=0,
+            maintenance_reference=0,
+            documentation_reference=0,
+        )
+        db.add(refs)
+        db.commit()
+        db.refresh(refs)
+    return refs
+
+
+def generate_amendment_reference(db: Session, amendment_type: AmendmentType) -> str:
+    """
+    Generate the next available amendment reference number based on type.
+
+    Reference format: {Number}{TypeSuffix}
+    Examples: 1B, 5F, 12E, 3FT
+
+    Args:
+        db: Database session
+        amendment_type: Type of amendment
 
     Returns:
         str: Generated reference number
     """
-    today = datetime.now()
-    date_prefix = f"AMD-{today.strftime('%Y%m%d')}"
+    refs = get_or_create_references(db)
 
-    # Find the highest sequence number for today
-    last_amendment = (
-        db.query(Amendment)
-        .filter(Amendment.amendment_reference.like(f"{date_prefix}-%"))
-        .order_by(desc(Amendment.amendment_reference))
-        .first()
-    )
+    # Get the suffix for this type
+    suffix = TYPE_SUFFIX_MAP.get(amendment_type, "U")  # "U" for Unknown if not mapped
 
-    if last_amendment:
-        # Extract sequence number and increment
-        last_ref = last_amendment.amendment_reference
-        last_seq = int(last_ref.split("-")[-1])
-        next_seq = last_seq + 1
+    # Increment the appropriate counter
+    if amendment_type == AmendmentType.BUG:
+        refs.bug_reference += 1
+        counter = refs.bug_reference
+    elif amendment_type == AmendmentType.FAULT:
+        refs.fault_reference += 1
+        counter = refs.fault_reference
+    elif amendment_type == AmendmentType.ENHANCEMENT:
+        refs.enhancement_reference += 1
+        counter = refs.enhancement_reference
+    elif amendment_type == AmendmentType.FEATURE:
+        refs.feature_reference += 1
+        counter = refs.feature_reference
+    elif amendment_type == AmendmentType.SUGGESTION:
+        refs.suggestion_reference += 1
+        counter = refs.suggestion_reference
+    elif amendment_type == AmendmentType.MAINTENANCE:
+        refs.maintenance_reference += 1
+        counter = refs.maintenance_reference
+    elif amendment_type == AmendmentType.DOCUMENTATION:
+        refs.documentation_reference += 1
+        counter = refs.documentation_reference
     else:
-        # First amendment today
-        next_seq = 1
+        # Fallback - use bug reference
+        refs.bug_reference += 1
+        counter = refs.bug_reference
 
-    return f"{date_prefix}-{next_seq:03d}"
+    db.commit()
+    db.refresh(refs)
+
+    return f"{counter}{suffix}"
 
 
-def get_next_reference(db: Session) -> str:
+def get_next_reference(db: Session, amendment_type: AmendmentType) -> str:
     """
-    Get the next available reference number without creating an amendment.
+    Preview the next available reference number without incrementing counters.
 
     Args:
         db: Database session
+        amendment_type: Type of amendment
 
     Returns:
         str: Next available reference number
     """
-    return generate_amendment_reference(db)
+    refs = get_or_create_references(db)
+    suffix = TYPE_SUFFIX_MAP.get(amendment_type, "U")
+
+    # Get the current counter value (next will be +1)
+    if amendment_type == AmendmentType.BUG:
+        counter = refs.bug_reference + 1
+    elif amendment_type == AmendmentType.FAULT:
+        counter = refs.fault_reference + 1
+    elif amendment_type == AmendmentType.ENHANCEMENT:
+        counter = refs.enhancement_reference + 1
+    elif amendment_type == AmendmentType.FEATURE:
+        counter = refs.feature_reference + 1
+    elif amendment_type == AmendmentType.SUGGESTION:
+        counter = refs.suggestion_reference + 1
+    elif amendment_type == AmendmentType.MAINTENANCE:
+        counter = refs.maintenance_reference + 1
+    elif amendment_type == AmendmentType.DOCUMENTATION:
+        counter = refs.documentation_reference + 1
+    else:
+        counter = refs.bug_reference + 1
+
+    return f"{counter}{suffix}"
 
 
 # ============================================================================
@@ -119,8 +196,8 @@ def create_amendment(
         ValueError: If required fields are missing or invalid
     """
     try:
-        # Generate unique reference number
-        reference = generate_amendment_reference(db)
+        # Generate unique reference number based on type
+        reference = generate_amendment_reference(db, amendment.amendment_type)
 
         # Create amendment model
         db_amendment = Amendment(

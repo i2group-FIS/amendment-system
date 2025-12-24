@@ -612,13 +612,24 @@ def delete_application_version(version_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/api/reference/next", response_model=schemas.NextReferenceResponse)
-def get_next_reference(db: Session = Depends(get_db)):
+def get_next_reference(
+    amendment_type: str = Query(..., description="Amendment type (Bug, Fault, Enhancement, etc.)"),
+    db: Session = Depends(get_db)
+):
     """
-    Get the next available amendment reference number.
+    Get the next available amendment reference number for a given type.
 
     Useful for pre-filling forms before creating an amendment.
     """
-    next_ref = crud.get_next_reference(db)
+    from .models import AmendmentType
+
+    # Convert string to AmendmentType enum
+    try:
+        amd_type = AmendmentType(amendment_type)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid amendment type: {amendment_type}")
+
+    next_ref = crud.get_next_reference(db, amd_type)
     return schemas.NextReferenceResponse(reference=next_ref)
 
 
