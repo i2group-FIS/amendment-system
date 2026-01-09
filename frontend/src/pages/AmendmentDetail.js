@@ -361,12 +361,18 @@ function AmendmentDetail() {
             <div className="detail-field">
               <label>Reported By</label>
               {editing ? (
-                <input
-                  type="text"
+                <select
                   name="reported_by"
                   value={formData.reported_by || ''}
                   onChange={handleChange}
-                />
+                >
+                  <option value="">Select Reporter</option>
+                  {employees.map(emp => (
+                    <option key={emp.employee_id} value={emp.initials}>
+                      {emp.employee_name} ({emp.initials})
+                    </option>
+                  ))}
+                </select>
               ) : (
                 <div>{amendment.reported_by || 'N/A'}</div>
               )}
@@ -375,12 +381,18 @@ function AmendmentDetail() {
             <div className="detail-field">
               <label>Assigned To</label>
               {editing ? (
-                <input
-                  type="text"
+                <select
                   name="assigned_to"
                   value={formData.assigned_to || ''}
                   onChange={handleChange}
-                />
+                >
+                  <option value="">Select Assignee</option>
+                  {employees.map(emp => (
+                    <option key={emp.employee_id} value={emp.initials}>
+                      {emp.employee_name} ({emp.initials})
+                    </option>
+                  ))}
+                </select>
               ) : (
                 <div>{amendment.assigned_to || 'N/A'}</div>
               )}

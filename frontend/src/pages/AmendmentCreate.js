@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { amendmentAPI, referenceAPI, documentAPI, applicationAPI } from '../services/api';
+import { amendmentAPI, referenceAPI, documentAPI, applicationAPI, employeeAPI } from '../services/api';
 import './AmendmentCreate.css';
 
 function AmendmentCreate() {
@@ -15,6 +15,7 @@ function AmendmentCreate() {
   const [priorities, setPriorities] = useState([]);
   const [forces, setForces] = useState([]);
   const [availableApps, setAvailableApps] = useState([]);
+  const [employees, setEmployees] = useState([]);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -45,13 +46,14 @@ function AmendmentCreate() {
 
   const loadReferenceData = async () => {
     try {
-      const [typesRes, statusesRes, devStatusesRes, prioritiesRes, forcesRes, appsRes] = await Promise.all([
+      const [typesRes, statusesRes, devStatusesRes, prioritiesRes, forcesRes, appsRes, employeesRes] = await Promise.all([
         referenceAPI.getTypes(),
         referenceAPI.getStatuses(),
         referenceAPI.getDevelopmentStatuses(),
         referenceAPI.getPriorities(),
         referenceAPI.getForces(),
         applicationAPI.getAll({ active_only: true }),
+        employeeAPI.getAll({ active_only: true }),
       ]);
 
       setTypes(typesRes.data);
@@ -60,6 +62,7 @@ function AmendmentCreate() {
       setPriorities(prioritiesRes.data);
       setForces(forcesRes.data);
       setAvailableApps(appsRes.data || []);
+      setEmployees(employeesRes.data || []);
 
       // Set initial values from reference data
       if (typesRes.data.length > 0) {
@@ -310,24 +313,34 @@ function AmendmentCreate() {
 
             <div className="form-field">
               <label>Reported By</label>
-              <input
-                type="text"
+              <select
                 name="reported_by"
                 value={formData.reported_by}
                 onChange={handleChange}
-                placeholder="Name of reporter"
-              />
+              >
+                <option value="">Select Reporter</option>
+                {employees.map(emp => (
+                  <option key={emp.employee_id} value={emp.initials}>
+                    {emp.employee_name} ({emp.initials})
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-field">
               <label>Assigned To</label>
-              <input
-                type="text"
+              <select
                 name="assigned_to"
                 value={formData.assigned_to}
                 onChange={handleChange}
-                placeholder="Name of assignee"
-              />
+              >
+                <option value="">Select Assignee</option>
+                {employees.map(emp => (
+                  <option key={emp.employee_id} value={emp.initials}>
+                    {emp.employee_name} ({emp.initials})
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-field">
