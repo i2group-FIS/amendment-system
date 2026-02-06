@@ -117,11 +117,6 @@ function AmendmentList() {
     setPagination({ skip: 0, limit: 25 });
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
-
   const getPriorityClass = (priority) => {
     if (priority === 'Critical') return 'text-red-600 dark:text-red-400';
     if (priority === 'High') return 'text-orange-600 dark:text-orange-400';
