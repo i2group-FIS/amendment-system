@@ -31,6 +31,7 @@ jobs:
         cp package.json build/
         cp package-lock.json build/
         cd build
+        npm install --production
         zip -r ../../deploy.zip .
 
     - name: Deploy to Azure Web App
