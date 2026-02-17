@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { amendmentAPI } from '../services/api';
+import apiClient, { amendmentAPI } from '../services/api';
 import { StatusBadge, ProgressBar, QAComments, WatcherButton } from './qa';
 import './QASection.css';
-
-// Get API base URL from environment or default to /api (for proxy)
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 function QASection({ amendment, employees, onUpdate, editing }) {
   const [qaData, setQaData] = useState({
@@ -53,18 +50,8 @@ function QASection({ amendment, employees, onUpdate, editing }) {
 
   const loadQAProgress = async () => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/amendments/${amendment.amendment_id}/qa-progress`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-      if (response.ok) {
-        const progress = await response.json();
-        setQaProgress(progress);
-      }
+      const response = await apiClient.get(`/amendments/${amendment.amendment_id}/qa-progress`);
+      setQaProgress(response.data);
     } catch (error) {
       console.error('Failed to load QA progress:', error);
     }
@@ -76,6 +63,7 @@ function QASection({ amendment, employees, onUpdate, editing }) {
   };
 
   const handleStatusChange = async (newStatus) => {
+    const prevData = qaData;
     const updates = { ...qaData, qa_status: newStatus };
 
     if (newStatus === 'In Testing' && !qaData.qa_started_date) {
@@ -96,12 +84,12 @@ function QASection({ amendment, employees, onUpdate, editing }) {
       }
     } catch (error) {
       console.error('Failed to update QA status:', error);
-      // Revert on error
-      setQaData(qaData);
+      setQaData(prevData);
     }
   };
 
   const handleAssign = async (employeeId) => {
+    const prevData = qaData;
     const updates = {
       ...qaData,
       qa_assigned_id: employeeId,
@@ -118,11 +106,12 @@ function QASection({ amendment, employees, onUpdate, editing }) {
       }
     } catch (error) {
       console.error('Failed to assign QA:', error);
-      setQaData(qaData);
+      setQaData(prevData);
     }
   };
 
   const handleChecklistChange = async (field) => {
+    const prevData = qaData;
     const updates = { ...qaData, [field]: !qaData[field] };
     setQaData(updates);
 
@@ -133,7 +122,7 @@ function QASection({ amendment, employees, onUpdate, editing }) {
       }
     } catch (error) {
       console.error('Failed to update checklist:', error);
-      setQaData(qaData);
+      setQaData(prevData);
     }
   };
 
@@ -162,6 +151,7 @@ function QASection({ amendment, employees, onUpdate, editing }) {
   };
 
   const handleOverallResultChange = async (result) => {
+    const prevData = qaData;
     const updates = { ...qaData, qa_overall_result: result };
     setQaData(updates);
 
@@ -172,7 +162,7 @@ function QASection({ amendment, employees, onUpdate, editing }) {
       }
     } catch (error) {
       console.error('Failed to update overall result:', error);
-      setQaData(qaData);
+      setQaData(prevData);
     }
   };
 
@@ -194,7 +184,12 @@ function QASection({ amendment, employees, onUpdate, editing }) {
 
   const getCurrentUser = () => {
     const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    if (!userStr) return null;
+    try {
+      return JSON.parse(userStr);
+    } catch {
+      return null;
+    }
   };
 
   return (
@@ -422,7 +417,12 @@ function QASection({ amendment, employees, onUpdate, editing }) {
                   placeholder="Enter test plan URL or path"
                 />
               ) : qaData.qa_test_plan_link ? (
-                <a href={qaData.qa_test_plan_link} target="_blank" rel="noopener noreferrer" className="qa-link">
+                <a
+                  href={/^https?:\/\//i.test(qaData.qa_test_plan_link) ? qaData.qa_test_plan_link : '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="qa-link"
+                >
                   {qaData.qa_test_plan_link}
                 </a>
               ) : (

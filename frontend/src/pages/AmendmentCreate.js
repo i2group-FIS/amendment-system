@@ -190,7 +190,7 @@ function AmendmentCreate() {
           await Promise.all(appPromises);
         } catch (appErr) {
           console.error('Failed to add some applications:', appErr);
-          // Continue even if application creation fails
+          setError('Amendment created but some applications failed to link. You can add them from the detail page.');
         }
       }
 
@@ -211,7 +211,7 @@ function AmendmentCreate() {
           await Promise.all(uploadPromises);
         } catch (docErr) {
           console.error('Failed to upload some documents:', docErr);
-          // Continue to navigate even if document upload fails
+          setError('Amendment created but some documents failed to upload. You can upload them from the detail page.');
         }
       }
 

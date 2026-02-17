@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/api';
 import './Admin.css';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 function AdminReference() {
   const [activeTab, setActiveTab] = useState('forces');
@@ -13,6 +11,7 @@ function AdminReference() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -29,9 +28,9 @@ function AdminReference() {
       setLoading(true);
       setError(null);
       const [forcesRes, prioritiesRes, statusesRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/forces`),
-        axios.get(`${API_BASE_URL}/priorities`),
-        axios.get(`${API_BASE_URL}/statuses`),
+        apiClient.get('/forces'),
+        apiClient.get('/priorities'),
+        apiClient.get('/statuses'),
       ]);
       setForces(forcesRes.data || []);
       setPriorities(prioritiesRes.data || []);
@@ -93,11 +92,13 @@ function AdminReference() {
   };
 
   const handleSave = async () => {
+    if (!formData.name.trim()) {
+      alert('Name is required');
+      return;
+    }
+
+    setSaving(true);
     try {
-      if (!formData.name.trim()) {
-        alert('Name is required');
-        return;
-      }
 
       let endpoint = '';
       let payload = {};
@@ -128,9 +129,9 @@ function AdminReference() {
       }
 
       if (editingItem) {
-        await axios.put(`${API_BASE_URL}${endpoint}`, null, { params: payload });
+        await apiClient.put(endpoint, payload);
       } else {
-        await axios.post(`${API_BASE_URL}${endpoint}`, null, { params: payload });
+        await apiClient.post(endpoint, payload);
       }
 
       setShowModal(false);
@@ -138,6 +139,8 @@ function AdminReference() {
     } catch (error) {
       console.error('Error saving item:', error);
       alert(error.response?.data?.detail || 'Failed to save item');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -156,7 +159,7 @@ function AdminReference() {
         endpoint = `/statuses/${getItemId(item)}`;
       }
 
-      await axios.delete(`${API_BASE_URL}${endpoint}`);
+      await apiClient.delete(endpoint);
       loadData();
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -356,8 +359,8 @@ function AdminReference() {
               <button className="btn-secondary" onClick={() => setShowModal(false)}>
                 Cancel
               </button>
-              <button className="btn-primary" onClick={handleSave}>
-                {editingItem ? 'Update' : 'Create'}
+              <button className="btn-primary" onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : editingItem ? 'Update' : 'Create'}
               </button>
             </div>
           </div>

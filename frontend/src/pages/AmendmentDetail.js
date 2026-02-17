@@ -267,7 +267,7 @@ function AmendmentDetail() {
       <div className="flex flex-wrap justify-between items-start gap-4 mb-8">
         <div className="flex flex-col gap-1">
           <h1 className="text-gray-900 dark:text-white text-3xl font-black leading-tight tracking-tight">
-            {amendment.amendment_reference}: {amendment.description?.substring(0, 50)}{amendment.description?.length > 50 ? '...' : ''}
+            {amendment.amendment_reference}: {amendment.description ? `${amendment.description.substring(0, 50)}${amendment.description.length > 50 ? '...' : ''}` : 'No description'}
           </h1>
           <p className="text-gray-500 text-sm">
             Created on {formatDate(amendment.created_on)} by {amendment.created_by || 'Unknown'}

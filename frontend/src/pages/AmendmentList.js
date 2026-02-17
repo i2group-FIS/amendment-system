@@ -265,7 +265,7 @@ function AmendmentList() {
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
                             <span className="text-gray-900 dark:text-white text-sm font-semibold group-hover:text-primary transition-colors">
-                              {amendment.description?.substring(0, 60)}{amendment.description?.length > 60 ? '...' : ''}
+                              {amendment.description ? `${amendment.description.substring(0, 60)}${amendment.description.length > 60 ? '...' : ''}` : 'No description'}
                             </span>
                           </div>
                         </td>
@@ -322,7 +322,7 @@ function AmendmentList() {
                 </button>
                 <button
                   onClick={() => setPagination(prev => ({ ...prev, skip: prev.skip + prev.limit }))}
-                  disabled={amendments.length < pagination.limit}
+                  disabled={pagination.skip + pagination.limit >= totalCount}
                   className="p-1 rounded hover:bg-gray-200 dark:hover:bg-white/10 text-gray-900 dark:text-white disabled:opacity-30"
                 >
                   <span className="material-symbols-outlined">chevron_right</span>

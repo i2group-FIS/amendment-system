@@ -10,11 +10,9 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import apiClient from '../../services/api';
 import CommentReactions from './CommentReactions';
 import './QAComments.css';
-
-// Get API base URL from environment or default to /api (for proxy)
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 const QAComments = ({ amendmentId, currentUser }) => {
   const [comments, setComments] = useState([]);
@@ -48,19 +46,8 @@ const QAComments = ({ amendmentId, currentUser }) => {
 
   const loadComments = async () => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/amendments/${amendmentId}/qa-comments`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-
-      if (!response.ok) throw new Error('Failed to load comments');
-
-      const data = await response.json();
-      setComments(data.items || []);
+      const response = await apiClient.get(`/amendments/${amendmentId}/qa-comments`);
+      setComments(response.data.items || []);
       setLoading(false);
     } catch (err) {
       console.error('Error loading comments:', err);
@@ -77,20 +64,12 @@ const QAComments = ({ amendmentId, currentUser }) => {
     }
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/employees/search?q=${encodeURIComponent(query)}&limit=10`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const employees = await response.json();
-        setMentionSuggestions(employees);
-        setShowMentionSuggestions(employees.length > 0);
-      }
+      const response = await apiClient.get('/employees/search', {
+        params: { q: query, limit: 10 },
+      });
+      const employees = response.data;
+      setMentionSuggestions(employees);
+      setShowMentionSuggestions(employees.length > 0);
     } catch (err) {
       console.error('Error searching employees:', err);
     }
@@ -150,31 +129,27 @@ const QAComments = ({ amendmentId, currentUser }) => {
 
     const textToSubmit = parentCommentId ? replyText : newComment;
     if (!textToSubmit.trim()) return;
+    if (!currentUser?.employee_id) {
+      setError('You must be logged in to comment');
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
 
     try {
-      let url = `${API_BASE_URL}/amendments/${amendmentId}/qa-comments`;
-      if (parentCommentId) {
-        url += `?parent_comment_id=${parentCommentId}`;
-      }
+      const params = parentCommentId ? { parent_comment_id: parentCommentId } : {};
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
+      await apiClient.post(
+        `/amendments/${amendmentId}/qa-comments`,
+        {
           amendment_id: amendmentId,
           employee_id: currentUser.employee_id,
           comment_text: textToSubmit,
           comment_type: commentType,
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to create comment');
+        },
+        { params }
+      );
 
       // Reload all comments to get updated threading
       await loadComments();
@@ -209,25 +184,11 @@ const QAComments = ({ amendmentId, currentUser }) => {
     if (!editText.trim()) return;
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/qa-comments/${commentId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-          body: JSON.stringify({
-            comment_text: editText,
-          }),
-        }
-      );
-
-      if (!response.ok) throw new Error('Failed to update comment');
-
-      const updatedComment = await response.json();
+      const response = await apiClient.patch(`/qa-comments/${commentId}`, {
+        comment_text: editText,
+      });
       setComments(
-        comments.map((c) => (c.comment_id === commentId ? updatedComment : c))
+        comments.map((c) => (c.comment_id === commentId ? response.data : c))
       );
       setEditingCommentId(null);
       setEditText('');
@@ -241,18 +202,7 @@ const QAComments = ({ amendmentId, currentUser }) => {
     if (!window.confirm('Are you sure you want to delete this comment?')) return;
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/qa-comments/${commentId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-
-      if (!response.ok) throw new Error('Failed to delete comment');
-
+      await apiClient.delete(`/qa-comments/${commentId}`);
       setComments(comments.filter((c) => c.comment_id !== commentId));
     } catch (err) {
       console.error('Error deleting comment:', err);

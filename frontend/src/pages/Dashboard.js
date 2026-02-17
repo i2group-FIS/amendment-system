@@ -282,7 +282,7 @@ function Dashboard() {
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
                         <span className="font-bold text-gray-900 dark:text-white">
-                          {amendment.description?.substring(0, 50)}{amendment.description?.length > 50 ? '...' : ''}
+                          {amendment.description ? `${amendment.description.substring(0, 50)}${amendment.description.length > 50 ? '...' : ''}` : 'No description'}
                         </span>
                       </div>
                     </td>

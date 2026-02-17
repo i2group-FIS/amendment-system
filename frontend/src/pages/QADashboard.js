@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+import apiClient from '../services/api';
 
 const QADashboard = () => {
   const navigate = useNavigate();
@@ -25,30 +24,19 @@ const QADashboard = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('No authentication token found. Please login.');
-        setLoading(false);
-        return;
-      }
-
       const [amendmentsRes, appsRes, employeesRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/amendments?limit=1000`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_BASE_URL}/applications`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_BASE_URL}/employees`, { headers: { Authorization: `Bearer ${token}` } }),
+        apiClient.get('/amendments', { params: { limit: 1000 } }),
+        apiClient.get('/applications'),
+        apiClient.get('/employees'),
       ]);
 
-      if (!amendmentsRes.ok) throw new Error('Failed to load amendments');
-
-      const amendmentsData = await amendmentsRes.json();
-      setAmendments(amendmentsData.items || []);
-
-      if (appsRes.ok) setApplications(await appsRes.json() || []);
-      if (employeesRes.ok) setEmployees(await employeesRes.json() || []);
+      setAmendments(amendmentsRes.data.items || []);
+      setApplications(appsRes.data || []);
+      setEmployees(employeesRes.data || []);
 
       setLoading(false);
     } catch (err) {
-      setError(`Failed to load data: ${err.message}`);
+      setError(`Failed to load data: ${err.response?.data?.detail || err.message}`);
       setLoading(false);
     }
   };
@@ -139,7 +127,7 @@ const QADashboard = () => {
         </div>
       </div>
       <h4 className="font-bold text-sm mb-2 group-hover:text-primary transition-colors line-clamp-2">
-        {amendment.description?.substring(0, 60)}{amendment.description?.length > 60 ? '...' : ''}
+        {amendment.description ? `${amendment.description.substring(0, 60)}${amendment.description.length > 60 ? '...' : ''}` : 'No description'}
       </h4>
       <div className="flex flex-wrap gap-2 mb-4">
         {amendment.application && (

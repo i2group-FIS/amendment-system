@@ -9,10 +9,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import apiClient from '../../services/api';
 import './CommentReactions.css';
-
-// Get API base URL from environment or default to /api (for proxy)
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 const CommentReactions = ({ commentId, initialReactions = {} }) => {
   const [reactions, setReactions] = useState(initialReactions);
@@ -29,35 +27,21 @@ const CommentReactions = ({ commentId, initialReactions = {} }) => {
 
   const loadReactions = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        `${API_BASE_URL}/comments/${commentId}/reactions/summary`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setReactions(data.reactions || {});
-      }
+      const response = await apiClient.get(`/comments/${commentId}/reactions/summary`);
+      setReactions(response.data.reactions || {});
 
       // Load user's reactions
-      const userReactionsResponse = await fetch(
-        `${API_BASE_URL}/comments/${commentId}/reactions`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (userReactionsResponse.ok) {
-        const userReactionsData = await userReactionsResponse.json();
-        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-        const myReactions = userReactionsData
-          .filter(r => r.employee_id === currentUser.employee_id)
-          .map(r => r.emoji);
-        setUserReactions(new Set(myReactions));
+      const userReactionsResponse = await apiClient.get(`/comments/${commentId}/reactions`);
+      let currentUser = null;
+      try {
+        currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      } catch {
+        currentUser = {};
       }
+      const myReactions = userReactionsResponse.data
+        .filter(r => r.employee_id === currentUser.employee_id)
+        .map(r => r.emoji);
+      setUserReactions(new Set(myReactions));
     } catch (error) {
       console.error('Error loading reactions:', error);
     }
@@ -68,24 +52,11 @@ const CommentReactions = ({ commentId, initialReactions = {} }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        `${API_BASE_URL}/comments/${commentId}/reactions?emoji=${encodeURIComponent(emoji)}`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (response.ok) {
-        await response.json();
-
-        // Update reactions
-        await loadReactions();
-        setShowPicker(false);
-      } else {
-        console.error('Failed to toggle reaction');
-      }
+      await apiClient.post(`/comments/${commentId}/reactions`, null, {
+        params: { emoji },
+      });
+      await loadReactions();
+      setShowPicker(false);
     } catch (error) {
       console.error('Error toggling reaction:', error);
     } finally {

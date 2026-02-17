@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../pages/QADashboard.css';
 
-// Get API base URL from environment or default to /api (for proxy)
+// Debug page intentionally uses raw fetch to test connectivity
 const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 const QADashboardDebug = () => {

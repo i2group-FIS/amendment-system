@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/api';
 import './Admin.css';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 function AdminEmployees() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [formData, setFormData] = useState({
     employee_name: '',
@@ -26,7 +25,7 @@ function AdminEmployees() {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${API_BASE_URL}/employees`);
+      const response = await apiClient.get('/employees');
       setEmployees(response.data || []);
     } catch (error) {
       console.error('Error loading employees:', error);
@@ -61,18 +60,17 @@ function AdminEmployees() {
   };
 
   const handleSave = async () => {
-    try {
-      if (!formData.employee_name.trim()) {
-        alert('Employee name is required');
-        return;
-      }
+    if (!formData.employee_name.trim()) {
+      alert('Employee name is required');
+      return;
+    }
 
+    setSaving(true);
+    try {
       if (editingEmployee) {
-        // Update existing
-        await axios.put(`${API_BASE_URL}/employees/${editingEmployee.employee_id}`, formData);
+        await apiClient.put(`/employees/${editingEmployee.employee_id}`, formData);
       } else {
-        // Create new
-        await axios.post(`${API_BASE_URL}/employees`, formData);
+        await apiClient.post('/employees', formData);
       }
 
       setShowModal(false);
@@ -80,6 +78,8 @@ function AdminEmployees() {
     } catch (error) {
       console.error('Error saving employee:', error);
       alert(error.response?.data?.detail || 'Failed to save employee');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -89,7 +89,7 @@ function AdminEmployees() {
     }
 
     try {
-      await axios.delete(`${API_BASE_URL}/employees/${employee.employee_id}`);
+      await apiClient.delete(`/employees/${employee.employee_id}`);
       loadEmployees();
     } catch (error) {
       console.error('Error deleting employee:', error);
@@ -269,8 +269,8 @@ function AdminEmployees() {
               <button className="btn-secondary" onClick={() => setShowModal(false)}>
                 Cancel
               </button>
-              <button className="btn-primary" onClick={handleSave}>
-                {editingEmployee ? 'Update' : 'Create'}
+              <button className="btn-primary" onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : editingEmployee ? 'Update' : 'Create'}
               </button>
             </div>
           </div>

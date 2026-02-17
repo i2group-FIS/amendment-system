@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/api';
 import './Admin.css';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 function AdminVersions() {
   const [versions, setVersions] = useState([]);
@@ -10,6 +8,7 @@ function AdminVersions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [editingVersion, setEditingVersion] = useState(null);
   const [formData, setFormData] = useState({
     application_id: '',
@@ -28,8 +27,8 @@ function AdminVersions() {
       setLoading(true);
       setError(null);
       const [versionsRes, appsRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/application-versions`),
-        axios.get(`${API_BASE_URL}/applications`),
+        apiClient.get('/application-versions'),
+        apiClient.get('/applications'),
       ]);
       setVersions(versionsRes.data || []);
       setApplications(appsRes.data || []);
@@ -66,27 +65,26 @@ function AdminVersions() {
   };
 
   const handleSave = async () => {
-    try {
-      if (!formData.application_id) {
-        alert('Application is required');
-        return;
-      }
-      if (!formData.version.trim()) {
-        alert('Version is required');
-        return;
-      }
+    if (!formData.application_id) {
+      alert('Application is required');
+      return;
+    }
+    if (!formData.version.trim()) {
+      alert('Version is required');
+      return;
+    }
 
+    setSaving(true);
+    try {
       const payload = {
         ...formData,
         released_date: formData.released_date || null,
       };
 
       if (editingVersion) {
-        // Update existing
-        await axios.put(`${API_BASE_URL}/application-versions/${editingVersion.application_version_id}`, payload);
+        await apiClient.put(`/application-versions/${editingVersion.application_version_id}`, payload);
       } else {
-        // Create new
-        await axios.post(`${API_BASE_URL}/application-versions`, payload);
+        await apiClient.post('/application-versions', payload);
       }
 
       setShowModal(false);
@@ -94,6 +92,8 @@ function AdminVersions() {
     } catch (error) {
       console.error('Error saving version:', error);
       alert(error.response?.data?.detail || 'Failed to save version');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -104,7 +104,7 @@ function AdminVersions() {
     }
 
     try {
-      await axios.delete(`${API_BASE_URL}/application-versions/${version.application_version_id}`);
+      await apiClient.delete(`/application-versions/${version.application_version_id}`);
       loadData();
     } catch (error) {
       console.error('Error deleting version:', error);
@@ -296,8 +296,8 @@ function AdminVersions() {
               <button className="btn-secondary" onClick={() => setShowModal(false)}>
                 Cancel
               </button>
-              <button className="btn-primary" onClick={handleSave}>
-                {editingVersion ? 'Update' : 'Create'}
+              <button className="btn-primary" onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : editingVersion ? 'Update' : 'Create'}
               </button>
             </div>
           </div>

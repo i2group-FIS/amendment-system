@@ -8,10 +8,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import apiClient from '../../services/api';
 import './WatcherButton.css';
-
-// Get API base URL from environment or default to /api (for proxy)
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 const WatcherButton = ({ amendmentId }) => {
   const [isWatching, setIsWatching] = useState(false);
@@ -30,18 +28,8 @@ const WatcherButton = ({ amendmentId }) => {
 
   const checkWatchStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        `${API_BASE_URL}/amendments/${amendmentId}/is-watching`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setIsWatching(data.is_watching);
-      }
+      const response = await apiClient.get(`/amendments/${amendmentId}/is-watching`);
+      setIsWatching(response.data.is_watching);
     } catch (error) {
       console.error('Error checking watch status:', error);
     }
@@ -49,19 +37,9 @@ const WatcherButton = ({ amendmentId }) => {
 
   const loadWatchers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        `${API_BASE_URL}/amendments/${amendmentId}/watchers`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setWatchers(data);
-        setWatcherCount(data.length);
-      }
+      const response = await apiClient.get(`/amendments/${amendmentId}/watchers`);
+      setWatchers(response.data);
+      setWatcherCount(response.data.length);
     } catch (error) {
       console.error('Error loading watchers:', error);
     }
@@ -72,40 +50,14 @@ const WatcherButton = ({ amendmentId }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-
       if (isWatching) {
-        // Unwatch
-        const response = await fetch(
-          `${API_BASE_URL}/amendments/${amendmentId}/watchers`,
-          {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-
-        if (response.ok) {
-          setIsWatching(false);
-          await loadWatchers();
-        }
+        await apiClient.delete(`/amendments/${amendmentId}/watchers`);
+        setIsWatching(false);
+        await loadWatchers();
       } else {
-        // Watch
-        const response = await fetch(
-          `${API_BASE_URL}/amendments/${amendmentId}/watchers`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ watch_reason: 'Manual' })
-          }
-        );
-
-        if (response.ok) {
-          setIsWatching(true);
-          await loadWatchers();
-        }
+        await apiClient.post(`/amendments/${amendmentId}/watchers`, { watch_reason: 'Manual' });
+        setIsWatching(true);
+        await loadWatchers();
       }
     } catch (error) {
       console.error('Error toggling watch:', error);

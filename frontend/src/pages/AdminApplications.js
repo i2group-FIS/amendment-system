@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/api';
 import './Admin.css';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 function AdminApplications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [editingApp, setEditingApp] = useState(null);
   const [formData, setFormData] = useState({
     application_name: '',
@@ -24,7 +23,7 @@ function AdminApplications() {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${API_BASE_URL}/applications`);
+      const response = await apiClient.get('/applications');
       setApplications(response.data || []);
     } catch (error) {
       console.error('Error loading applications:', error);
@@ -55,18 +54,17 @@ function AdminApplications() {
   };
 
   const handleSave = async () => {
-    try {
-      if (!formData.application_name.trim()) {
-        alert('Application name is required');
-        return;
-      }
+    if (!formData.application_name.trim()) {
+      alert('Application name is required');
+      return;
+    }
 
+    setSaving(true);
+    try {
       if (editingApp) {
-        // Update existing
-        await axios.put(`${API_BASE_URL}/applications/${editingApp.application_id}`, formData);
+        await apiClient.put(`/applications/${editingApp.application_id}`, formData);
       } else {
-        // Create new
-        await axios.post(`${API_BASE_URL}/applications`, formData);
+        await apiClient.post('/applications', formData);
       }
 
       setShowModal(false);
@@ -74,6 +72,8 @@ function AdminApplications() {
     } catch (error) {
       console.error('Error saving application:', error);
       alert(error.response?.data?.detail || 'Failed to save application');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -83,7 +83,7 @@ function AdminApplications() {
     }
 
     try {
-      await axios.delete(`${API_BASE_URL}/applications/${app.application_id}`);
+      await apiClient.delete(`/applications/${app.application_id}`);
       loadApplications();
     } catch (error) {
       console.error('Error deleting application:', error);
@@ -236,8 +236,8 @@ function AdminApplications() {
               <button className="btn-secondary" onClick={() => setShowModal(false)}>
                 Cancel
               </button>
-              <button className="btn-primary" onClick={handleSave}>
-                {editingApp ? 'Update' : 'Create'}
+              <button className="btn-primary" onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : editingApp ? 'Update' : 'Create'}
               </button>
             </div>
           </div>
